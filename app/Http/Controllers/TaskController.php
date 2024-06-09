@@ -55,31 +55,37 @@ class TaskController extends Controller
     */
     public function getTasksDataList(Request $request)
     {
-        $cookieVal = $request->get('cookieVal') ?: $request->get('todolist');
-        $cookie = Cookie::where('cookie_val', $cookieVal)->firstOrFail();
-        $tasks = Task::where('cookie_id', $cookie->id);
-        if ($request->get('showAll') !== 'true') {
-            $tasks->where('completed', false);
-        }
-        $tasks->orderBy('created_at', 'desc');
+        try {
+            $cookieVal = $request->get('cookieVal') ?: $request->get('todolist');
+            $cookie = Cookie::where('cookie_val', $cookieVal)->firstOrFail();
+            $tasks = Task::where('cookie_id', $cookie->id);
+            if ($request->get('showAll') !== 'true') {
+                $tasks->where('completed', false);
+            }
+            $tasks->orderBy('created_at', 'desc');
 
-        return DataTables::of($tasks)
-            ->editColumn('completed', function($task) {
-                return $task->completed ? 'Done' : '';
-            })
-            ->addColumn('sno', function ($row) {
-                static $i = 1;
-                return $i++;
-            })
-            ->addColumn('action', function($task) {
-                $action = '';
-                if(!$task->completed){
-                    $action .= '<button class="btn btn-success btn-sm mark-complete" title="Mark Complete" data-id="' . Crypt::encrypt($task->id) . '"><i class="fas fa-check-square"></i></button><span> | </span>';
-                }
-                return $action.'<button class="btn btn-danger btn-sm delete-task" title="Delete To-Do Task" data-id="' . Crypt::encrypt($task->id) . '"><i class="fas fa-times-square"></i></button>';
-            })
-            ->rawColumns(['action'])
+            return DataTables::of($tasks)
+                ->editColumn('completed', function($task) {
+                    return $task->completed ? 'Done' : '';
+                })
+                ->addColumn('sno', function ($row) {
+                    static $i = 1;
+                    return $i++;
+                })
+                ->addColumn('action', function($task) {
+                    $action = '';
+                    if(!$task->completed){
+                        $action .= '<button class="btn btn-success btn-sm mark-complete" title="Mark Complete" data-id="' . Crypt::encrypt($task->id) . '"><i class="fas fa-check-square"></i></button><span> | </span>';
+                    }
+                    return $action.'<button class="btn btn-danger btn-sm delete-task" title="Delete To-Do Task" data-id="' . Crypt::encrypt($task->id) . '"><i class="fas fa-times-square"></i></button>';
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        } catch (\Throwable $th) {
+            return DataTables::of([])
             ->make(true);
+        }
+        
     }
 
     /**

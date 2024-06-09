@@ -81,7 +81,7 @@ class TaskController extends Controller
                 })
                 ->rawColumns(['action'])
                 ->make(true);
-        } catch (\Throwable $th) {
+        } catch (\Exception $th) {
             return DataTables::of([])
             ->make(true);
         }
